@@ -1,3 +1,8 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+
+
 import pandas as pd
 import duckdb as dd
 import numpy as np
@@ -36,11 +41,37 @@ consultaSoloComunes = """
 Establecimientos = dd.sql(consultaSoloComunes).df()
 
 elimino = """
-            SELECT Jurisdicción as Provincia, Departamento, "Nivel inicial - Jardín maternal" as maternal,
+            SELECT Jurisdicción as Provincia, Departamento, "Nivel inicial - Jardín maternal" as Maternal,
             "Nivel inicial - Jardín de infantes" as jardin, Primario, Secundario,
             "Secundario - INET" as SecuInet, "SNU" as Snu, "SNU - INET" as SnuInet
             FROM Establecimientos;
           """
 
 Establecimientos = dd.sql(elimino).df()
-print(Establecimientos)
+
+consultaMaternales =    """
+                            SELECT Provincia, Departamento, COUNT(Maternal) as Maternales, 
+                            COUNT(jardin) as Jardines, COUNT(Primario) as Primarias,
+                            COUNT(Secundario) as Secundarias, COUNT(SecuInet) as SecuInets,
+                            COUNT(Snu) as Snus, COUNT(SnuInet) as SnuInets
+                            FROM Establecimientos
+                            WHERE Maternal = '1' OR Jardin = '1' OR Primario = '1' OR
+                            Secundario = '1' OR SecuInet = '1' OR Snu = '1'
+                            OR SnuInet = '1'
+                            GROUP BY Departamento, Provincia;
+                        """
+df_EstablecimientosPorDepartamento = dd.sql(consultaMaternales).df()
+
+print(df_EstablecimientosPorDepartamento)
+
+
+consultaVerificoDepartamentos = """
+                                    SELECT COUNT(DISTINCT Departamento)
+                                    FROM df_EstablecimientosPorDepartamento;
+                                """
+verifico = dd.sql(consultaVerificoDepartamentos).df()
+
+print(verifico)
+
+
+
