@@ -7,7 +7,7 @@ import pandas as pd
 import duckdb as dd
 import numpy as np
 
-# Establecimientos: Data frame de Establecimientos Educativos del padròn del 2022
+#Establecimientos: Data frame de Establecimientos Educativos del padròn del 2022
 
 
 columnas_ee = 'A:C,L,N,U:AA'
@@ -30,7 +30,6 @@ AA - SNU - INET
 Establecimientos = pd.read_excel("2022_padron_oficial_establecimientos_educativos.xlsx", 
                                  skiprows=6, usecols= columnas_ee)
 
-
 #Eliminamos los establecimientos que no son comunes
 consultaSoloComunes = """
                       SELECT *
@@ -50,6 +49,20 @@ elimino = """
           """
 
 Establecimientos = dd.sql(elimino).df()
+
+#padron_poblacional = Datos de poblacion por departamento
+
+padron_poblacional = pd.read_excel("padron_poblacion.xlsX", skiprows=13)
+
+#las ultimas tres filas no sirven
+padron_poblacional.drop(index=[len(padron_poblacional)-5, len(padron_poblacional)-1], inplace=True, axis=0)
+
+#hay una columna que solo tiene NaNs
+padron_poblacional.dropna(axis=1, how='all', inplace=True)
+
+
+
+#
 
 consultaCantNivelesPorDepto =    """
                             SELECT Provincia, Departamento, COUNT(Maternal) as Maternales, 
