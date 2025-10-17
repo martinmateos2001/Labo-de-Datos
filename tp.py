@@ -27,10 +27,11 @@ AA - SNU - INET
 """
 
 
-Establecimientos = pd.read_excel("/home/Estudiante/Descargas//2022_padron_oficial_establecimientos_educativos.xlsx", skiprows=6, usecols= columnas_ee)
+Establecimientos = pd.read_excel("2022_padron_oficial_establecimientos_educativos.xlsx", 
+                                 skiprows=6, usecols= columnas_ee)
 
 
-
+#Eliminamos los establecimientos que no son comunes
 consultaSoloComunes = """
                       SELECT *
                       FROM Establecimientos
@@ -40,6 +41,7 @@ consultaSoloComunes = """
 
 Establecimientos = dd.sql(consultaSoloComunes).df()
 
+#Eliminamos Cueanexo
 elimino = """
             SELECT Jurisdicción as Provincia, Departamento, "Nivel inicial - Jardín maternal" as Maternal,
             "Nivel inicial - Jardín de infantes" as jardin, Primario, Secundario,
@@ -49,7 +51,7 @@ elimino = """
 
 Establecimientos = dd.sql(elimino).df()
 
-consultaMaternales =    """
+consultaCantNivelesPorDepto =    """
                             SELECT Provincia, Departamento, COUNT(Maternal) as Maternales, 
                             COUNT(jardin) as Jardines, COUNT(Primario) as Primarias,
                             COUNT(Secundario) as Secundarias, COUNT(SecuInet) as SecuInets,
@@ -60,18 +62,18 @@ consultaMaternales =    """
                             OR SnuInet = '1'
                             GROUP BY Departamento, Provincia;
                         """
-df_EstablecimientosPorDepartamento = dd.sql(consultaMaternales).df()
+df_EstablecimientosPorDepartamento = dd.sql(consultaCantNivelesPorDepto).df()
 
-print(df_EstablecimientosPorDepartamento)
+# print(df_EstablecimientosPorDepartamento)
 
 
-consultaVerificoDepartamentos = """
-                                    SELECT COUNT(DISTINCT Departamento)
-                                    FROM df_EstablecimientosPorDepartamento;
-                                """
-verifico = dd.sql(consultaVerificoDepartamentos).df()
+# consultaVerificoDepartamentos = """
+#                                     SELECT COUNT(DISTINCT Departamento)
+#                                     FROM df_EstablecimientosPorDepartamento;
+#                                 """
+# verifico = dd.sql(consultaVerificoDepartamentos).df()
 
-print(verifico)
+# print(verifico)
 
 
 
