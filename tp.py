@@ -64,7 +64,7 @@ def consultarCantNivelesPorDepto(nivel:str, nombreDelCount:str):
 cant_maternales_depto = consultarCantNivelesPorDepto('Maternal', 'Maternales')
 cant_jardin_depto = consultarCantNivelesPorDepto('Jardin', 'Jardines')
 cant_primaria_depto = consultarCantNivelesPorDepto('Primario', 'Primarios')
-cant_jardin_depto = consultarCantNivelesPorDepto('Secundario', 'Secundarios')
+cant_secundaria_depto = consultarCantNivelesPorDepto('Secundario', 'Secundarios')
 
                    
 #%%padron_poblacional = Datos de poblacion por departamento
@@ -164,11 +164,39 @@ pob_jardin_depto = consultarPobPorRangos(3, 5, "Poblacion_Jardin")
 # Se solapan las poblaciones de 12 años
 pob_primaria_depto = consultarPobPorRangos(6, 12, "Poblacion_Primaria")
 
-pob_secu_depto = consultarPobPorRangos(12, 18, "Poblacion_Primaria")
+pob_secu_depto = consultarPobPorRangos(12, 18, "Poblacion_Secundaria")
 
+pob_terciaria_joven = consultarPobPorRangos(18, 25, 'Poblacion_Terciaria_Joven')
 
+pob_terciaria_mayor = consultarPobPorRangos(25, 54, 'Poblacion_Terciaria_Mayor')
 # EN TERCIARIOS HAY QUE TOMAR DESICIONES (DEJO PENDIENTE)
 
+
+
+#%% Datos por Departamento, Actividad y Género
+
+deptos_actividad_genero = pd.read_csv('Datos_por_departamento_actividad_y_sexo.csv')
+
+consultaDatos2022 = """
+                        SELECT *
+                        FROM deptos_actividad_genero
+                        WHERE anio = 2022;
+                    """
+
+deptos_actividad_genero = dd.sql(consultaDatos2022).df()
+
+consultaTablaProvincias =   """
+                                SELECT DISTINCT provincia_id, provincia
+                                FROM deptos_actividad_genero;
+                            """
+tabla_provincias = dd.sql(consultaTablaProvincias).df()
+
+consultaTablaDeptos =   """
+                            SELECT DISTINCT in_departamentos, departamento, provincia_id
+                            FROM  deptos_actividad_genero
+                            ORDER in_departamentos ASC;
+                        """
+tabla_deptos = dd.sql(consultaTablaDeptos).df()
 
 
 
