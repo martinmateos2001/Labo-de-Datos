@@ -50,19 +50,46 @@ elimino = """
 
 Establecimientos = dd.sql(elimino).df()
 
-#padron_poblacional = Datos de poblacion por departamento
+#%%padron_poblacional = Datos de poblacion por departamento
 
-padron_poblacional = pd.read_excel("padron_poblacion.xlsX", skiprows=13)
+padron_poblacional = pd.read_excel("padron_poblacion.xlsX", skiprows=12, header=None)
 
-#las ultimas tres filas no sirven
-padron_poblacional.drop(index=[len(padron_poblacional)-5, len(padron_poblacional)-1], inplace=True, axis=0)
+#las ultimas 4 filas no sirven     
+f_malas = []   
+i:int() = len(padron_poblacional)-5
+while(i < len(padron_poblacional)):     #las ultimas 4
+    f_malas.append(i)
+    i = i + 1
 
-#hay una columna que solo tiene NaNs
+padron_poblacional.drop(index=f_malas, inplace=True, axis=0)
+
+#Elimino la columna vacia y las filas vacias.
 padron_poblacional.dropna(axis=1, how='all', inplace=True)
+padron_poblacional.dropna(axis=0, how='all', inplace=True)
 
+#%% padron limpio
+padron_pob_limpio = pd.DataFrame(columns=['Area', 'Edad', 'Casos'])
+areas = []
+edades = []
+casos = []
 
+area_actual = ""
+for index, row in padron_poblacional.iterrows():
+    primera_celda = str(row[1])
+    if (pd.notnull(row[1])):
+        primera_celda = primera_celda.strip()
+        if ("AREA" in primera_celda):
+            area_actual= primera_celda
+        elif (primera_celda.isdigit()):
+            areas.append(area_actual)
+            edades.append(primera_celda)
+            casos.append(str(row[2]).strip())
 
-#
+padron_pob_limpio['Area'] = areas
+padron_pob_limpio['Edad'] = edades
+padron_pob_limpio['Casos'] = casos
+
+#%%
 
 consultaCantNivelesPorDepto =    """
                             SELECT Provincia, Departamento, COUNT(Maternal) as Maternales, 
