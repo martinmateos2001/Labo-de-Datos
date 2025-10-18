@@ -1,13 +1,13 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+#%%
 
 
 import pandas as pd
 import duckdb as dd
 import numpy as np
 
-#Establecimientos: Data frame de Establecimientos Educativos del padròn del 2022
+#%%Establecimientos: Data frame de Establecimientos Educativos del padròn del 2022
 
 
 columnas_ee = 'A:C,L,N,U:AA'
@@ -43,13 +43,30 @@ Establecimientos = dd.sql(consultaSoloComunes).df()
 #Eliminamos Cueanexo
 elimino = """
             SELECT Jurisdicción as Provincia, Departamento, "Nivel inicial - Jardín maternal" as Maternal,
-            "Nivel inicial - Jardín de infantes" as jardin, Primario, Secundario,
+            "Nivel inicial - Jardín de infantes" as Jardin, Primario, Secundario,
             "Secundario - INET" as SecuInet, "SNU" as Snu, "SNU - INET" as SnuInet
             FROM Establecimientos;
           """
 
 Establecimientos = dd.sql(elimino).df()
 
+#%% Buscamos la cantidad de establecimientos que hay de cada nivel
+
+def consultarCantNivelesPorDepto(nivel:str, nombreDelCount:str):
+    consulta =  f"""
+                   SELECT Provincia, Departamento, COUNT({nivel}) as {nombreDelCount}
+                   FROM Establecimientos
+                   WHERE {nivel} = '1'
+                   GROUP BY Departamento, Provincia;
+                   """
+    return dd.sql(consulta).df()
+
+cant_maternales_depto = consultarCantNivelesPorDepto('Maternal', 'Maternales')
+cant_jardin_depto = consultarCantNivelesPorDepto('Jardin', 'Jardines')
+cant_primaria_depto = consultarCantNivelesPorDepto('Primario', 'Primarios')
+cant_jardin_depto = consultarCantNivelesPorDepto('Secundario', 'Secundarios')
+
+                   
 #%%padron_poblacional = Datos de poblacion por departamento
 
 padron_poblacional = pd.read_excel("padron_poblacion.xlsX", skiprows=12, header=None)
@@ -93,7 +110,7 @@ for index, row in padron_poblacional.iterrows():
         elif (primera_celda.isdigit()):
             areas.append(area_actual)
             deptos.append(depto_actual)
-            edades.append(primera_celda)
+            edades.append(int(primera_celda))
             casos.append(int(segunda_celda))
         elif ("RESUMEN" in primera_celda):
             break
@@ -105,52 +122,55 @@ padron_pob_limpio['Departamento'] = deptos
 padron_pob_limpio['Edad'] = edades
 padron_pob_limpio['Casos'] = casos
 
-#%%Creo tabla departamantos     NO SÉ SI SE NECESITE
+#%% ESTABA PROBANDO: obtuve la poblacion total de cada departamento
 
-consultaPoblacionTotalPorDeptos =    """
-                                    SELECT DISTINCT Cod_Departamento, Departamento,
-                                    SUM(Casos) as Poblacion_total
-                                    FROM padron_pob_limpio;
-                                """
-DepartamentosPoblacionTotal = dd.sql(consultaPoblacionTotalPorDeptos).df()
+consultaPoblacionTotalPorDeptos =   """
+                                        SELECT Cod_Departamento, Departamento, SUM(Casos) as Poblacion_total,
+                                        FROM padron_pob_limpio
+                                        GROUP BY Cod_Departamento, Departamento;
+                                    """
+departamentos_poblacion_total = dd.sql(consultaPoblacionTotalPorDeptos).df()
 
-#%% busco la cantidad de personas que hay respecto al nivel educativo
+
+
+#%% busco la cantidad de personas que hay respecto a cada nivel educativo
 """
 maternal es [0, 2]
 infantes es [3, 5]
 primaria es [6, 12]
 secundaria es [12, 18]
 secuInet es [12, 19]
-snu es []
+snu y snuInet > 18 años
 """
+def consultarPobPorRangos(edad_minima:int, edad_maxima:int, nombre_poblacion:str) -> pd.DataFrame:
+    consulta = f"""
+                SELECT 
+                    Cod_Departamento, Departamento, 
+                    SUM(Casos) as {nombre_poblacion}
+                FROM padron_pob_limpio
+                WHERE Edad >= {edad_minima} AND Edad <= {edad_maxima}
+                GROUP BY Cod_Departamento, Departamento;
+                """
+    return dd.sql(consulta).df()
+
+#prueba = consultarPobPorRangos(0, 2, "asdf")
+
+
+pob_maternal_depto = consultarPobPorRangos(0, 2, "Poblacion_Maternal")
+
+
+pob_jardin_depto = consultarPobPorRangos(3, 5, "Poblacion_Jardin")
+
+# Se solapan las poblaciones de 12 años
+pob_primaria_depto = consultarPobPorRangos(6, 12, "Poblacion_Primaria")
+
+pob_secu_depto = consultarPobPorRangos(12, 18, "Poblacion_Primaria")
+
+
+# EN TERCIARIOS HAY QUE TOMAR DESICIONES (DEJO PENDIENTE)
 
 
 
-
-#%%
-consultaCantNivelesPorDepto =    """
-                            SELECT Provincia, Departamento, COUNT(Maternal) as Maternales, 
-                            COUNT(jardin) as Jardines, COUNT(Primario) as Primarias,
-                            COUNT(Secundario) as Secundarias, COUNT(SecuInet) as SecuInets,
-                            COUNT(Snu) as Snus, COUNT(SnuInet) as SnuInets
-                            FROM Establecimientos
-                            WHERE Maternal = '1' OR Jardin = '1' OR Primario = '1' OR
-                            Secundario = '1' OR SecuInet = '1' OR Snu = '1'
-                            OR SnuInet = '1'
-                            GROUP BY Departamento, Provincia;
-                        """
-df_EstablecimientosPorDepartamento = dd.sql(consultaCantNivelesPorDepto).df()
-
-# print(df_EstablecimientosPorDepartamento)
-
-
-# consultaVerificoDepartamentos = """
-#                                     SELECT COUNT(DISTINCT Departamento)
-#                                     FROM df_EstablecimientosPorDepartamento;
-#                                 """
-# verifico = dd.sql(consultaVerificoDepartamentos).df()
-
-# print(verifico)
 
 
 
