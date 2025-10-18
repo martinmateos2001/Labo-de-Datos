@@ -194,7 +194,7 @@ tabla_provincias = dd.sql(consultaTablaProvincias).df()
 consultaTablaDeptos =   """
                             SELECT DISTINCT in_departamentos, departamento, provincia_id
                             FROM  deptos_actividad_genero
-                            ORDER in_departamentos ASC;
+                            ORDER BY in_departamentos ASC;
                         """
 tabla_deptos = dd.sql(consultaTablaDeptos).df()
 
