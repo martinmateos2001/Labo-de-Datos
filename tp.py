@@ -94,15 +94,40 @@ for index, row in padron_poblacional.iterrows():
             areas.append(area_actual)
             deptos.append(depto_actual)
             edades.append(primera_celda)
-            casos.append(str(row[2]).strip())
+            casos.append(int(segunda_celda))
+        elif ("RESUMEN" in primera_celda):
+            break
+
+            
 
 padron_pob_limpio['Cod_Departamento'] = areas
 padron_pob_limpio['Departamento'] = deptos
 padron_pob_limpio['Edad'] = edades
 padron_pob_limpio['Casos'] = casos
 
-#%%
+#%%Creo tabla departamantos     NO SÉ SI SE NECESITE
 
+consultaPoblacionTotalPorDeptos =    """
+                                    SELECT DISTINCT Cod_Departamento, Departamento,
+                                    SUM(Casos) as Poblacion_total
+                                    FROM padron_pob_limpio;
+                                """
+DepartamentosPoblacionTotal = dd.sql(consultaPoblacionTotalPorDeptos).df()
+
+#%% busco la cantidad de personas que hay respecto al nivel educativo
+"""
+maternal es [0, 2]
+infantes es [3, 5]
+primaria es [6, 12]
+secundaria es [12, 18]
+secuInet es [12, 19]
+snu es []
+"""
+
+
+
+
+#%%
 consultaCantNivelesPorDepto =    """
                             SELECT Provincia, Departamento, COUNT(Maternal) as Maternales, 
                             COUNT(jardin) as Jardines, COUNT(Primario) as Primarias,
