@@ -68,24 +68,36 @@ padron_poblacional.dropna(axis=1, how='all', inplace=True)
 padron_poblacional.dropna(axis=0, how='all', inplace=True)
 
 #%% padron limpio
-padron_pob_limpio = pd.DataFrame(columns=['Area', 'Edad', 'Casos'])
+padron_pob_limpio = pd.DataFrame(columns=['Cod_Departamento', 'Departamento', 'Edad', 'Casos'])
 areas = []
+deptos = []
 edades = []
 casos = []
 
+
+def limpiarCodArea(area:str):
+    sacar = 'AREA #'
+    return area.replace(sacar, '')
+
 area_actual = ""
+depto_actual = ""
 for index, row in padron_poblacional.iterrows():
     primera_celda = str(row[1])
+    segunda_celda = str(row[2])
     if (pd.notnull(row[1])):
         primera_celda = primera_celda.strip()
+        segunda_celda = segunda_celda.strip()
         if ("AREA" in primera_celda):
-            area_actual= primera_celda
+            area_actual= limpiarCodArea(primera_celda)
+            depto_actual =  segunda_celda
         elif (primera_celda.isdigit()):
             areas.append(area_actual)
+            deptos.append(depto_actual)
             edades.append(primera_celda)
             casos.append(str(row[2]).strip())
 
-padron_pob_limpio['Area'] = areas
+padron_pob_limpio['Cod_Departamento'] = areas
+padron_pob_limpio['Departamento'] = deptos
 padron_pob_limpio['Edad'] = edades
 padron_pob_limpio['Casos'] = casos
 
